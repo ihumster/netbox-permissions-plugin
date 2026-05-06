@@ -1,13 +1,14 @@
-"""reverse_lookup(content_type, object_id, action=None).
+"""``reverse_lookup(content_type, object_id, action=None)``.
 
-Алгоритм:
-1. Достаём enabled ObjectPermission, у которых в object_types этот CT
-   и (если задан action) в actions есть запрошенный action.
-2. Для каждого ObjectPermission применяем его constraints как Q к queryset
-   модели и проверяем, попадает ли указанный объект под фильтр.
-   Это делается одним SQL-запросом на правило вида
-   `Model.objects.filter(pk=object_id).filter(<constraints>).exists()`.
-3. Возвращаем список MatchingRule с привязанными users/groups.
+Algorithm:
+
+1. Pull enabled ObjectPermission rows whose ``object_types`` includes the CT
+   (and, when ``action`` is provided, whose ``actions`` contains it).
+2. For each rule, apply its constraints as a Q on the model queryset and check
+   whether the requested object passes the filter. This is a single SQL per
+   rule of the form
+   ``Model.objects.filter(pk=object_id).filter(<constraints>).exists()``.
+3. Return a list of MatchingRule with attached users/groups.
 """
 
 from __future__ import annotations
@@ -39,7 +40,7 @@ def reverse_lookup(
     object_id: Any,
     action: str | None = None,
 ) -> tuple[MatchingRule, ...]:
-    """Кто и через какое правило имеет доступ к указанному объекту."""
+    """Who has access to the given object, and via which rule."""
     from users.models import ObjectPermission
 
     qs = ObjectPermission.objects.filter(
@@ -47,7 +48,7 @@ def reverse_lookup(
         enabled=True,
     )
     if action:
-        # actions хранится как список строк; проверяем contains через Postgres `?`.
+        # ``actions`` is a JSON list of strings; check membership via Postgres ``?``.
         qs = qs.filter(actions__contains=[action])
 
     qs = qs.prefetch_related("object_types", "users", "groups").distinct()
@@ -63,7 +64,7 @@ def reverse_lookup(
             q = constraints_to_q(perm.constraints)
         except NeverMatch:
             continue
-        # Один запрос на правило — на 5–25 perms на CT это нормально.
+        # One query per rule — fine at 5–25 perms per CT.
         if not model._default_manager.filter(pk=object_id).filter(q).exists():
             continue
 
@@ -75,13 +76,13 @@ def reverse_lookup(
             constraints=perm.constraints,
             object_type_app_label=content_type.app_label,
             object_type_model=content_type.model,
-            source=RuleSource.DIRECT,  # для reverse это поле менее значимо
+            source=RuleSource.DIRECT,  # less meaningful for reverse-lookup output
         )
         grantees = tuple(_grantees_for(perm))
         matching.append(MatchingRule(rule=rule, grantees=grantees))
 
-    # superuser-ы: их в reverse-lookup тоже стоит показывать,
-    # потому что для дежурного важно увидеть полный список доступов.
+    # Superusers should also appear in reverse-lookup so the on-call sees the
+    # full access list at a glance.
     matching.extend(_superuser_matches(content_type, object_id))
     return tuple(matching)
 

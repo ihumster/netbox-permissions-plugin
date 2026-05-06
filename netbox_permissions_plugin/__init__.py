@@ -1,12 +1,12 @@
 """NetBox Permissions Plugin.
 
-MVP, этап 1 — read-only аудит:
+MVP, stage 1 — read-only audit:
 
-* «Effective permissions for user/group» — что реально может пользователь.
-* «Reverse lookup by object» — кто имеет доступ к конкретному объекту.
-* «Tester» — единичная проверка allow/deny с трассой.
+* "Effective permissions for user/group" — what the user actually can do.
+* "Reverse lookup by object" — who has access to a specific object.
+* "Tester" — single allow/deny check with a trace of matched rules.
 
-Запись (CRUD ObjectPermission, constraint builder) — в этапе 2.
+Write features (CRUD ObjectPermission, constraint builder) are planned for stage 2.
 """
 
 from __future__ import annotations
@@ -20,26 +20,26 @@ class NetBoxPermissionsPluginConfig(PluginConfig):
     name = "netbox_permissions_plugin"
     verbose_name = "Permissions Audit"
     description = (
-        "Аудит эффективных прав в NetBox: что может пользователь, "
-        "кто имеет доступ к объекту, единичная проверка allow/deny."
+        "Audit of effective permissions in NetBox: what a user can do, "
+        "who has access to an object, and a single allow/deny check."
     )
     version = __version__
     author = "Alexander"
-    author_email = "padla2k@gmail.com"
+    author_email = "ihumster@ihumster.ru"
     base_url = "permissions"
     min_version = "4.4.0"
     required_settings = []
     default_settings = {
-        # Список имён групп, которые управляются внешним IdP и которые плагин
-        # помечает в UI как «managed externally». Записать в них из плагина
-        # будет нельзя (актуально для этапа 2).
+        # Names of groups managed by the external IdP. The plugin marks them as
+        # "managed externally" in the UI. In stage 2, write operations against
+        # these groups will be blocked.
         "external_groups": [],
-        # Имя backend-класса MembershipProvider; точка кастомизации для
-        # источников членства типа SAML/OIDC claims.
+        # Dotted paths of MembershipProvider classes. This is the extension
+        # point for SAML/OIDC group claim sources.
         "membership_providers": [
             "netbox_permissions_plugin.resolver.membership.DjangoMembershipProvider",
         ],
-        # Сколько объектов показывать в превью при reverse-lookup.
+        # Number of objects shown in the reverse-lookup preview.
         "preview_sample_size": 25,
     }
 

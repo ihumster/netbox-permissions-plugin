@@ -1,15 +1,15 @@
-"""compute_effective(user) — основной метод аудита.
+"""``compute_effective(user)`` — the main audit entry point.
 
-Алгоритм:
+Algorithm:
 
-1. Если user.is_active=False — возвращаем пустой набор с пометкой;
-   в Django backend всё равно вернёт False, но в аудите хочется видеть человека
-   и его потенциальные права (то, что у него «было бы», но не работает).
-2. Если user.is_superuser=True — возвращаем синтетическую ResolvedRule
-   с маркером SUPERUSER. В реальности superuser обходит permission backend.
-3. Иначе — выгружаем все enabled ObjectPermission, привязанные к user
-   напрямую или через любую из его групп (один SQL-запрос с distinct).
-4. Каждый ObjectPermission «разворачиваем» по object_types и источникам.
+1. If ``user.is_active`` is False, return an empty set with the inactive flag.
+   Django's permission backend would also return False, but the audit page
+   wants to show the user and the rules they "would have" if reactivated.
+2. If ``user.is_superuser`` is True, return a synthetic ResolvedRule marked
+   SUPERUSER. In reality a superuser bypasses the permission backend entirely.
+3. Otherwise, fetch every enabled ObjectPermission attached to the user
+   directly or via any of their groups (single SQL query with distinct).
+4. Expand each ObjectPermission across its object_types and assignment paths.
 """
 
 from __future__ import annotations
@@ -33,9 +33,9 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 def compute_effective(user) -> EffectivePermissions:
-    """Вычислить эффективные права для пользователя.
+    """Compute effective permissions for the given user.
 
-    Принимает экземпляр User (из get_user_model()).
+    Accepts an instance of ``get_user_model()``.
     """
     User = get_user_model()
     if not isinstance(user, User):
@@ -90,7 +90,7 @@ def compute_effective(user) -> EffectivePermissions:
 
 
 def compute_effective_for_group(group) -> EffectivePermissions:
-    """Эффективные права самой группы (без членов)."""
+    """Effective permissions of the group itself, ignoring its members."""
     rules = tuple(_resolve_for_group(group))
     return EffectivePermissions(
         subject_kind="group",
@@ -104,14 +104,14 @@ def compute_effective_for_group(group) -> EffectivePermissions:
 
 
 def _object_permission_model():
-    """Лениво импортируем ObjectPermission, чтобы модуль грузился без NetBox."""
+    """Lazily import ObjectPermission so this module loads without NetBox."""
     from users.models import ObjectPermission
 
     return ObjectPermission
 
 
 def _resolve_for_user(user, memberships: tuple[GroupMembership, ...]) -> Iterable[ResolvedRule]:
-    """Достать все ObjectPermission, относящиеся к user, и развернуть."""
+    """Fetch every ObjectPermission relevant to the user and expand them."""
     ObjectPermission = _object_permission_model()
     group_ids = [m.group_id for m in memberships]
 
@@ -127,8 +127,8 @@ def _resolve_for_user(user, memberships: tuple[GroupMembership, ...]) -> Iterabl
     membership_by_id = {m.group_id: m for m in memberships}
 
     for perm in qs:
-        # Один и тот же ObjectPermission может быть и прямым, и через группу —
-        # эмитим записи отдельно, чтобы пользователь видел все источники.
+        # The same ObjectPermission can be both directly assigned and granted
+        # via a group; emit separate rows so all sources are visible.
         directly_assigned = perm.users.filter(pk=user.pk).exists()
         related_groups = list(perm.groups.filter(pk__in=group_ids))
 
@@ -161,7 +161,12 @@ def _resolve_for_group(group) -> Iterable[ResolvedRule]:
             yield _make_rule(perm, ct, RuleSource.GROUP, fake_membership)
 
 
-def _make_rule(perm, content_type, source: RuleSource, via_group: GroupMembership | None) -> ResolvedRule:
+def _make_rule(
+    perm,
+    content_type,
+    source: RuleSource,
+    via_group: GroupMembership | None,
+) -> ResolvedRule:
     return ResolvedRule(
         permission_id=perm.pk,
         permission_name=perm.name,

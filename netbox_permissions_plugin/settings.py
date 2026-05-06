@@ -1,10 +1,11 @@
-"""Доступ к настройкам плагина с правильными дефолтами.
+"""Plugin settings access with default values.
 
-NetBox кладёт настройки плагина в settings.PLUGINS_CONFIG[<plugin_name>].
-Любое чтение настроек должно идти через эти хелперы, чтобы:
-1. дефолты были в одном месте;
-2. mypy/IDE имели подсказки;
-3. тесты могли подменять конкретные ключи через @override_settings.
+NetBox stores plugin settings under ``settings.PLUGINS_CONFIG[<plugin_name>]``.
+Reading those settings should always go through the helpers below so that:
+
+1. defaults live in one place;
+2. mypy / IDE get type hints;
+3. tests can override single keys via ``@override_settings``.
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ _DEFAULTS: dict[str, Any] = {
 
 
 def get(key: str) -> Any:
-    """Вернуть значение настройки плагина с применением дефолта."""
+    """Return a plugin setting, falling back to the registered default."""
     cfg = getattr(settings, "PLUGINS_CONFIG", {}).get(PLUGIN_NAME, {})
     if key in cfg:
         return cfg[key]

@@ -1,6 +1,6 @@
-"""Тесты сериализации constraints → Q.
+"""Tests for constraints -> Q serialization.
 
-Этот тест НЕ требует БД и Django-моделей; гоняется быстро.
+This test does NOT need the DB or any Django models; it runs fast.
 """
 
 from __future__ import annotations
@@ -39,5 +39,5 @@ def test_empty_list_means_never():
 
 def test_non_dict_chunks_are_skipped_safely():
     q = constraints_to_q([{"slug": "dc1"}, "garbage", {"slug": "dc2"}])  # type: ignore[list-item]
-    # «Мусорный» фрагмент должен быть проигнорирован, не превращая правило в permissive.
+    # "Garbage" chunks must be ignored without making the rule overly permissive.
     assert q.connector == "OR"

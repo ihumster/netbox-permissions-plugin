@@ -1,12 +1,13 @@
-"""Утилиты для применения NetBox-style constraints.
+"""Helpers for applying NetBox-style constraints.
 
-NetBox хранит constraints в JSONField:
-- None или {} — без ограничений (всегда True);
-- dict — все ключи AND;
-- list[dict] — список вариантов OR; пустой список означает «никогда».
+NetBox stores constraints in a JSONField:
 
-Каждый ключ dict — это lookup в Django ORM (`field__sub__lookup`),
-значение — то, что туда передаётся в Q(...).
+- ``None`` or ``{}`` — no restrictions (always True);
+- ``dict`` — all keys ANDed together;
+- ``list[dict]`` — alternatives ORed together; an empty list means "never".
+
+Each dict key is a Django ORM lookup (``field__sub__lookup``); the value is
+passed to ``Q(...)`` as is.
 """
 
 from __future__ import annotations
@@ -17,14 +18,14 @@ from django.db.models import Q
 
 
 class NeverMatch(Exception):
-    """Маркер: constraints = [] — фильтр никогда не должен пропускать ничего."""
+    """Marker: constraints == [] — the filter must reject everything."""
 
 
 def constraints_to_q(constraints: dict[str, Any] | list[dict[str, Any]] | None) -> Q:
-    """Преобразовать constraints в Q-объект.
+    """Convert constraints to a Q object.
 
-    Возвращает Q() (т.е. «всё подходит»), если ограничений нет.
-    Бросает NeverMatch, если constraints — пустой список.
+    Returns ``Q()`` (i.e. "anything matches") when no constraints are present.
+    Raises ``NeverMatch`` when constraints is an empty list.
     """
     if constraints is None:
         return Q()
@@ -38,9 +39,9 @@ def constraints_to_q(constraints: dict[str, Any] | list[dict[str, Any]] | None) 
         q = Q()
         for chunk in constraints:
             if not isinstance(chunk, dict):
-                # Структурно невалидно — пропускаем; не делаем правило слишком permissive.
+                # Structurally invalid — skip; do not make the rule overly permissive.
                 continue
             q |= Q(**chunk) if chunk else Q()
         return q
-    # Неизвестный тип — считаем «без ограничений», но это аномалия.
+    # Unknown type — treat as "no restrictions", but this is anomalous data.
     return Q()

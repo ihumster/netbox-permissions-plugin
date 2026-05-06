@@ -1,6 +1,7 @@
-"""URL-конфигурация плагина.
+"""Plugin URL configuration.
 
-Префикс /plugins/permissions/ задаётся NetBox автоматически из base_url.
+The ``/plugins/permissions/`` prefix is added automatically by NetBox from
+``PluginConfig.base_url``.
 """
 
 from __future__ import annotations

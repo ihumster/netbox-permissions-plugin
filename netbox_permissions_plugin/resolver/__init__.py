@@ -1,7 +1,8 @@
-"""Resolver — ядро аудита.
+"""Resolver — the audit core.
 
-Этот пакет ничего не знает про HTTP, формы и шаблоны: только Python и Django ORM.
-Это нужно, чтобы юнит-тесты гонялись быстро и без поднятия view'ов.
+This package knows nothing about HTTP, forms, or templates: only Python and
+the Django ORM. Keeping it pure lets unit tests run fast without touching the
+view layer.
 """
 
 from .effective import compute_effective

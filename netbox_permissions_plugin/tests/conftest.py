@@ -1,8 +1,8 @@
-"""Общие фикстуры для тестов resolver-а.
+"""Shared fixtures for resolver tests.
 
-Тесты идут поверх живого NetBox-окружения (через DJANGO_SETTINGS_MODULE=netbox.settings),
-поэтому реально создают User, Group, ObjectPermission, dcim.Site и т.п.
-Запускать через `pytest` из директории, где доступен NetBox.
+These tests run against a live NetBox environment (DJANGO_SETTINGS_MODULE=netbox.settings),
+so they really create User, Group, ObjectPermission, dcim.Site, etc.
+Run via ``pytest`` from a directory where NetBox is importable.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import pytest
 
 @pytest.fixture
 def db_setup(db):
-    """Маркер «нужна БД». Просто прокидывает pytest-django db fixture."""
+    """Marker for "needs DB". Just re-exports the pytest-django ``db`` fixture."""
     return db
 
 

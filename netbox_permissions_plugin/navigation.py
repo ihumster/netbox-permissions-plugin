@@ -1,6 +1,6 @@
-"""Боковая навигация NetBox.
+"""NetBox sidebar navigation.
 
-Регистрируем три пункта меню в собственной группе «Permissions Audit».
+Registers three menu items under the "Permissions Audit" group.
 """
 
 from __future__ import annotations

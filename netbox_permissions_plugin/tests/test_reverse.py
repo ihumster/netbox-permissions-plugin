@@ -1,4 +1,4 @@
-"""Тесты reverse_lookup."""
+"""Tests for reverse_lookup."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ def test_never_match_constraints_are_skipped(
         "blocked",
         actions=["view"],
         users=[regular_user],
-        constraints=[],  # NetBox-идиома «никогда»
+        constraints=[],  # NetBox idiom for "never matches"
     )
     rows = reverse_lookup(site_ct, site_dc1.pk)
     assert all(r.rule.permission_name != "blocked" for r in rows)

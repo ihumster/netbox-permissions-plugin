@@ -1,9 +1,9 @@
-"""PluginTemplateExtension — добавляет вкладку «Permissions» на детальную
-страницу любого объекта NetBox с reverse_lookup-таблицей.
+"""PluginTemplateExtension — adds a "Permissions" tab on the detail page of any
+NetBox object with the reverse_lookup table.
 
-Регистрируется через `template_extensions` в PluginConfig.
-В этапе 1 показываем результат reverse_lookup без action-фильтра — чтобы
-сразу был виден полный список доступов.
+Discovered via ``template_extensions`` in PluginConfig.
+In stage 1 we render the reverse_lookup result without an action filter so the
+full access list is visible at a glance.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from .resolver.reverse import reverse_lookup
 
 
 class _ObjectPermissionsTab(PluginTemplateExtension):
-    """Базовый класс — конкретные models задаются в подклассах."""
+    """Base class — concrete subclasses set the ``models`` attribute."""
 
     def right_page(self):
         obj = self.context["object"]
@@ -27,8 +27,8 @@ class _ObjectPermissionsTab(PluginTemplateExtension):
         )
 
 
-# Список моделей, к которым подключаем tab. Можно расширять по мере надобности
-# или сделать цикл по всем NetBoxModel. Для MVP — наиболее частые.
+# Models that get the tab. Extend as needed; for the MVP we cover the most
+# frequently audited ones. Could also be looped over all NetBoxModel subclasses.
 _TARGETS = [
     "dcim.device",
     "dcim.site",

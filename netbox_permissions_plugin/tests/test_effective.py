@@ -1,4 +1,4 @@
-"""Тесты compute_effective."""
+"""Tests for compute_effective."""
 
 from __future__ import annotations
 

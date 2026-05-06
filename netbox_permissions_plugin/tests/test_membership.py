@@ -1,4 +1,4 @@
-"""Тесты MembershipProvider."""
+"""Tests for MembershipProvider."""
 
 from __future__ import annotations
 
