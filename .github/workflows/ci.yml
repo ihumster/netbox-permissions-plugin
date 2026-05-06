@@ -29,6 +29,9 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # У плагина нет uv.lock (он необязателен для проектов без runtime-deps).
+          # Хешируем кеш по pyproject.toml — он меняется только при апгрейде dev-deps.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Install ruff
         run: uv tool install ruff==0.6.9
@@ -52,6 +55,9 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # У плагина нет uv.lock (он необязателен для проектов без runtime-deps).
+          # Хешируем кеш по pyproject.toml — он меняется только при апгрейде dev-deps.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python
         run: uv python install 3.12
@@ -109,6 +115,9 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # У плагина нет uv.lock (он необязателен для проектов без runtime-deps).
+          # Хешируем кеш по pyproject.toml — он меняется только при апгрейде dev-deps.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python ${{ matrix.python }}
         run: uv python install ${{ matrix.python }}

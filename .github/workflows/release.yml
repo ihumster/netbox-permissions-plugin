@@ -25,6 +25,8 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # У плагина нет uv.lock — хешируем кеш по pyproject.toml.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python
         run: uv python install 3.12
