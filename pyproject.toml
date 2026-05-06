@@ -1,0 +1,92 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "netbox-permissions-plugin"
+version = "0.1.0"
+description = "NetBox plugin for auditing effective permissions and (later) building ObjectPermission rules visually."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "Alexander", email = "ihumster@ihumster.ru" },
+]
+keywords = ["netbox", "permissions", "rbac", "audit"]
+classifiers = [
+    "Framework :: Django",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+# Runtime-зависимостей у плагина нет: Django и NetBox уже стоят в целевой среде.
+dependencies = []
+
+[project.optional-dependencies]
+# Зависимости для тестов и линтинга. Через uv ставятся как `uv sync --extra dev`.
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.8",
+    "pytest-mock>=3.12",
+    "factory-boy>=3.3",
+    "ruff==0.6.9",
+]
+
+[project.urls]
+Homepage = "https://example.invalid/netbox-permissions-plugin"
+Issues = "https://example.invalid/netbox-permissions-plugin/issues"
+
+# Hatchling: точно описать, что попадает в wheel.
+[tool.hatch.build.targets.wheel]
+packages = ["netbox_permissions_plugin"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/netbox_permissions_plugin",
+    "/README.md",
+    "/CONTRIBUTING.md",
+    "/pyproject.toml",
+]
+
+# uv-специфичные настройки. Не обязательны, но фиксируют поведение явно.
+[tool.uv]
+# Кешировать виртуалку проекта в .venv, чтобы CI и локальная сборка совпадали.
+package = true
+# Минимальная версия uv — не критично, но защитит от старых поведений.
+required-version = ">=0.4.0"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "netbox.settings"
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "SIM", # simplify
+    "C4",  # comprehensions
+    "DJ",  # django-specific
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line length (форматтер сам разберётся)
+    "B008",  # default arg call — частый паттерн в DRF/Django
+]
+
+[tool.ruff.lint.per-file-ignores]
+"netbox_permissions_plugin/tests/*" = ["F401", "F811"]  # фикстуры pytest
+
+[tool.ruff.format]
+quote-style = "double"

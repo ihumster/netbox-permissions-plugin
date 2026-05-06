@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write       # для создания GitHub Release
+  id-token: write       # для PyPI Trusted Publishing (OIDC)
+
+env:
+  UV_VERSION: "0.4.30"
+  FORCE_COLOR: "1"
+
+jobs:
+  build:
+    name: Build sdist + wheel (uv)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Verify tag matches pyproject version
+        run: |
+          tag="${GITHUB_REF#refs/tags/v}"
+          # tomllib — stdlib с 3.11, гарантированно есть на 3.12.
+          pkg=$(uv run --python 3.12 --no-project python -c \
+            "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::Tag v$tag != pyproject.toml version $pkg"
+            exit 1
+          fi
+          echo "Tag and pyproject version match: $tag"
+
+      - name: Build distributions
+        # uv build делает то же, что python -m build, но без pip + быстрее.
+        run: uv build
+
+      - name: Check distributions with twine
+        # twine check валидирует README/metadata; uv пока не имеет встроенного эквивалента.
+        run: |
+          uv tool install twine
+          uv tool run twine check dist/*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  github-release:
+    name: Attach to GitHub Release
+    needs: [build]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create release with assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  pypi-publish:
+    # Опциональный job. Включается, если в репозитории установлен
+    # vars.PUBLISH_TO_PYPI=true и на PyPI настроен Trusted Publisher
+    # (в settings проекта на pypi.org -> Publishing -> GitHub).
+    name: Publish to PyPI (uv publish)
+    needs: [build]
+    runs-on: ubuntu-22.04
+    environment:
+      name: pypi
+      url: https://pypi.org/p/netbox-permissions-plugin
+    if: ${{ vars.PUBLISH_TO_PYPI == 'true' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Publish via uv (Trusted Publishing OIDC)
+        # uv publish с PyPI Trusted Publisher автоматически подхватывает
+        # OIDC-токен GitHub из id-token: write permission.
+        run: uv publish dist/*

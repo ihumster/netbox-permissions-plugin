@@ -1,0 +1,31 @@
+{% load helpers %}
+<div class="card mt-3">
+  <h5 class="card-header">Permissions</h5>
+  <div class="card-body p-0">
+    {% if perm_rows %}
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr><th>Правило</th><th>Actions</th><th>Кому</th></tr>
+        </thead>
+        <tbody>
+          {% for row in perm_rows %}
+            <tr>
+              <td>
+                {{ row.rule.permission_name }}
+                {% if row.rule.source.value == "superuser" %}<span class="badge bg-danger">superuser</span>{% endif %}
+              </td>
+              <td>{% for a in row.rule.actions %}<span class="badge bg-success me-1">{{ a }}</span>{% endfor %}</td>
+              <td>
+                {% for g in row.grantees %}
+                  <span class="badge {% if g.kind == 'user' %}bg-primary{% else %}bg-info{% endif %}">{{ g.label }}</span>
+                {% endfor %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="p-3 text-muted">Нет применимых ObjectPermission.</div>
+    {% endif %}
+  </div>
+</div>

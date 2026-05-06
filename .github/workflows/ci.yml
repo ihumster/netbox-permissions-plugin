@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Отменяем дубликаты на ту же ветку, чтобы не жечь миньки.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Параметры uv по всем job-ам.
+  UV_VERSION: "0.4.30"
+  UV_PYTHON_PREFERENCE: only-managed   # uv ставит python сам, без apt
+  FORCE_COLOR: "1"
+
+jobs:
+  lint:
+    name: Lint (ruff via uv)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Install ruff
+        run: uv tool install ruff==0.6.9
+
+      - name: ruff check
+        run: uv tool run ruff check netbox_permissions_plugin
+
+      - name: ruff format --check
+        run: uv tool run ruff format --check netbox_permissions_plugin
+
+  pure-tests:
+    # Тесты, которые не требуют поднятого NetBox. Быстрая обратная связь —
+    # секунды, а не минуты как полный матричный прогон.
+    name: Pure Python tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Run resolver-only tests (no NetBox required)
+        # uv run автоматически создаёт виртуалку и ставит зависимости из pyproject.
+        run: |
+          uv run --python 3.12 --with pytest --with pytest-mock \
+            pytest netbox_permissions_plugin/tests/test_q_builder.py -ra
+
+  netbox-tests:
+    name: NetBox tests (py${{ matrix.python }} / NetBox ${{ matrix.netbox-ref }})
+    needs: [lint]
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13"]
+        # 4.4.0 — первая 4.4 версия. Расширить до ["v4.4.0", "v4.5.0", "develop"]
+        # когда выйдут более свежие, — это безопасно, jobs независимые.
+        netbox-ref: ["v4.4.0"]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: netbox
+          POSTGRES_PASSWORD: netbox
+          POSTGRES_DB: netbox
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U netbox"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NETBOX_DIR: ${{ github.workspace }}/.netbox
+      NETBOX_REF: ${{ matrix.netbox-ref }}
+      DJANGO_SETTINGS_MODULE: netbox.settings
+
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python }}
+        run: uv python install ${{ matrix.python }}
+
+      - name: Clone NetBox ${{ matrix.netbox-ref }}
+        run: |
+          git clone --depth 1 --branch "$NETBOX_REF" \
+            https://github.com/netbox-community/netbox.git "$NETBOX_DIR"
+
+      - name: Create venv and install deps via uv
+        # Один venv для NetBox + плагина. uv pip install подхватывает путь
+        # активного venv через VIRTUAL_ENV; venv лежит в $NETBOX_DIR/.venv.
+        run: |
+          uv venv --python ${{ matrix.python }} "$NETBOX_DIR/.venv"
+          echo "VIRTUAL_ENV=$NETBOX_DIR/.venv" >> "$GITHUB_ENV"
+          echo "$NETBOX_DIR/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install NetBox requirements
+        run: |
+          uv pip install -r "$NETBOX_DIR/requirements.txt"
+
+      - name: Install plugin (editable, with dev deps)
+        run: |
+          uv pip install -e ".[dev]"
+
+      - name: Write NetBox configuration
+        run: |
+          cat > "$NETBOX_DIR/netbox/netbox/configuration.py" <<'PY'
+          ALLOWED_HOSTS = ["*"]
+          DATABASE = {
+              "NAME": "netbox",
+              "USER": "netbox",
+              "PASSWORD": "netbox",
+              "HOST": "localhost",
+              "PORT": "5432",
+              "CONN_MAX_AGE": 300,
+          }
+          REDIS = {
+              "tasks": {
+                  "HOST": "localhost", "PORT": 6379,
+                  "PASSWORD": "", "DATABASE": 0, "SSL": False,
+              },
+              "caching": {
+                  "HOST": "localhost", "PORT": 6379,
+                  "PASSWORD": "", "DATABASE": 1, "SSL": False,
+              },
+          }
+          SECRET_KEY = "ci-secret-key-not-for-prod-" + "x" * 50
+          PLUGINS = ["netbox_permissions_plugin"]
+          PLUGINS_CONFIG = {"netbox_permissions_plugin": {}}
+          PY
+
+      - name: Migrate database
+        working-directory: ${{ env.NETBOX_DIR }}/netbox
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Run plugin tests
+        working-directory: ${{ env.NETBOX_DIR }}/netbox
+        env:
+          PYTHONPATH: ${{ env.NETBOX_DIR }}/netbox
+        run: |
+          pytest "$GITHUB_WORKSPACE/netbox_permissions_plugin/tests/" \
+            -ra --tb=short \
+            --rootdir="$GITHUB_WORKSPACE"

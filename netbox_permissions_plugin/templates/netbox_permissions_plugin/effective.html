@@ -1,0 +1,91 @@
+{% extends 'netbox_permissions_plugin/_base.html' %}
+
+{% block page_title %}Effective permissions{% endblock %}
+{% block page_subtitle %}Что реально может пользователь — с учётом групп и constraints.{% endblock %}
+
+{% block result %}
+  {% if result %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h4>{{ result.subject_label }}</h4>
+        <div>
+          {% if result.is_superuser %}
+            <span class="badge bg-danger">superuser</span>
+          {% endif %}
+          {% if not result.is_active %}
+            <span class="badge bg-secondary">inactive</span>
+          {% endif %}
+        </div>
+        {% if result.memberships %}
+          <p class="mt-2 mb-1"><strong>Группы:</strong></p>
+          <ul class="list-inline">
+            {% for m in result.memberships %}
+              <li class="list-inline-item">
+                <span class="badge bg-info">{{ m.group_name }}</span>
+                <small class="text-muted">{{ m.source.value }}</small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">Не состоит ни в одной группе.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if result.is_superuser %}
+      <div class="alert alert-warning">
+        Superuser обходит permission backend полностью — может всё.
+      </div>
+    {% elif not result.rules %}
+      <div class="alert alert-info">
+        Нет ни одного применимого ObjectPermission.
+      </div>
+    {% else %}
+      {% regroup result.rules by object_type_label as by_ct %}
+      {% for ct_group in by_ct %}
+        <div class="card mb-3">
+          <h5 class="card-header"><code>{{ ct_group.grouper }}</code></h5>
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Правило</th>
+                <th>Actions</th>
+                <th>Constraints</th>
+                <th>Источник</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in ct_group.list %}
+                <tr>
+                  <td>{{ r.permission_name }}{% if not r.enabled %} <small class="text-muted">(disabled)</small>{% endif %}</td>
+                  <td>{% for a in r.actions %}<span class="badge bg-success me-1">{{ a }}</span>{% endfor %}</td>
+                  <td>
+                    {% if r.is_unrestricted %}
+                      <em class="text-success">без ограничений</em>
+                    {% elif r.is_never_match %}
+                      <em class="text-danger">never matches</em>
+                    {% else %}
+                      <code>{{ r.constraints }}</code>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if r.source.value == "direct" %}
+                      <span class="badge bg-primary">direct</span>
+                    {% elif r.source.value == "group" %}
+                      via <span class="badge bg-info">{{ r.via_group.group_name }}</span>
+                      <small class="text-muted">{{ r.via_group.source.value }}</small>
+                    {% else %}
+                      <span class="badge bg-danger">{{ r.source.value }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% else %}
+    <div class="alert alert-info">Выберите пользователя слева.</div>
+  {% endif %}
+{% endblock %}
