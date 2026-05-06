@@ -1,16 +1,14 @@
 # NetBox Permissions Plugin
 
-[![CI](https://github.com/OWNER/netbox-permissions-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/netbox-permissions-plugin/actions/workflows/ci.yml)
+[![CI](https://github.com/ihumster/netbox-permissions-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/ihumster/netbox-permissions-plugin/actions/workflows/ci.yml)
 
 Аудит и (в будущем) визуальный конструктор `users.ObjectPermission` для NetBox 4.4+.
 
 Целевые версии: **NetBox ≥ 4.4**, **Python ≥ 3.12**.
 Сборка и dev-окружение — через [`uv`](https://github.com/astral-sh/uv).
 
-> Замените `OWNER` в URL бейджа на свой GitHub-аккаунт/организацию после создания репозитория.
-
 ## Что есть в этом MVP (этап 1)
-
+~~~~
 Плагин **только читает** существующие права. Запись через UI и constraint-builder появятся в этапе 2.
 
 Три страницы под `/plugins/permissions/`:
