@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.views import View
 
 from ..forms import EffectiveQueryForm
-from ..resolver import compute_effective
+from ..resolver.effective import compute_effective
 
 
 class EffectivePermissionsView(PermissionRequiredMixin, View):
