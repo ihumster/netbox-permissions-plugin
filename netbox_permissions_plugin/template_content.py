@@ -1,4 +1,4 @@
-"""PluginTemplateExtension — adds a "Permissions" tab on the detail page of any
+"""PluginTemplateExtension -- adds a "Permissions" tab on the detail page of any
 NetBox object with the reverse_lookup table.
 
 Discovered via ``template_extensions`` in PluginConfig.
@@ -15,7 +15,7 @@ from .resolver.reverse import reverse_lookup
 
 
 class _ObjectPermissionsTab(PluginTemplateExtension):
-    """Base class — concrete subclasses set the ``models`` attribute."""
+    """Base class -- concrete subclasses set the ``models`` attribute."""
 
     def right_page(self):
         obj = self.context["object"]

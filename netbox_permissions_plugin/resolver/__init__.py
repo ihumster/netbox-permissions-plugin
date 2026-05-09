@@ -1,4 +1,4 @@
-"""Resolver — the audit core.
+"""Resolver -- the audit core.
 
 This package knows nothing about HTTP, forms, or templates: only Python and
 the Django ORM. Keeping it pure lets unit tests run fast without touching the

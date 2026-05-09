@@ -25,7 +25,7 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
-          # No uv.lock in this repo — cache key is pyproject.toml.
+          # No uv.lock in this repo -- cache key is pyproject.toml.
           cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python

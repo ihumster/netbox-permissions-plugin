@@ -66,9 +66,7 @@ class ResolvedRule:
         c = self.constraints
         if c is None:
             return True
-        if isinstance(c, dict) and len(c) == 0:
-            return True
-        return False
+        return isinstance(c, dict) and len(c) == 0
 
     @property
     def is_never_match(self) -> bool:

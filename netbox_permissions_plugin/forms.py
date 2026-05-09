@@ -9,7 +9,6 @@ from __future__ import annotations
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-
 from utilities.forms.fields import DynamicModelChoiceField
 
 User = get_user_model()

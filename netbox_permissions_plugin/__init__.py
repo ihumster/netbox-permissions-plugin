@@ -1,15 +1,17 @@
 """NetBox Permissions Plugin.
 
-MVP, stage 1 — read-only audit:
+MVP, stage 1 -- read-only audit:
 
-* "Effective permissions for user/group" — what the user actually can do.
-* "Reverse lookup by object" — who has access to a specific object.
-* "Tester" — single allow/deny check with a trace of matched rules.
+* "Effective permissions for user/group" -- what the user actually can do.
+* "Reverse lookup by object" -- who has access to a specific object.
+* "Tester" -- single allow/deny check with a trace of matched rules.
 
 Write features (CRUD ObjectPermission, constraint builder) are planned for stage 2.
 """
 
 from __future__ import annotations
+
+from typing import Any, ClassVar
 
 from netbox.plugins import PluginConfig
 
@@ -28,8 +30,8 @@ class NetBoxPermissionsPluginConfig(PluginConfig):
     author_email = "ihumster@ihumster.ru"
     base_url = "permissions"
     min_version = "4.4.0"
-    required_settings = []
-    default_settings = {
+    required_settings: ClassVar[list[str]] = []
+    default_settings: ClassVar[dict[str, Any]] = {
         # Names of groups managed by the external IdP. The plugin marks them as
         # "managed externally" in the UI. In stage 2, write operations against
         # these groups will be blocked.

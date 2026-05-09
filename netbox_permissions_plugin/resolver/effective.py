@@ -1,4 +1,4 @@
-"""``compute_effective(user)`` — the main audit entry point.
+"""``compute_effective(user)`` -- the main audit entry point.
 
 Algorithm:
 
@@ -14,7 +14,7 @@ Algorithm:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -27,9 +27,6 @@ from .types import (
     ResolvedRule,
     RuleSource,
 )
-
-if TYPE_CHECKING:  # pragma: no cover
-    from django.contrib.auth.models import Group
 
 
 def compute_effective(user) -> EffectivePermissions:

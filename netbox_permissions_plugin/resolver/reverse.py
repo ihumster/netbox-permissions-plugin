@@ -64,7 +64,7 @@ def reverse_lookup(
             q = constraints_to_q(perm.constraints)
         except NeverMatch:
             continue
-        # One query per rule — fine at 5–25 perms per CT.
+        # One query per rule -- fine at 5-25 perms per CT.
         if not model._default_manager.filter(pk=object_id).filter(q).exists():
             continue
 

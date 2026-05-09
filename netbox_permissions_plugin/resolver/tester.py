@@ -1,10 +1,10 @@
-"""``explain(user, ct, object_id, action)`` — single allow/deny check.
+"""``explain(user, ct, object_id, action)`` -- single allow/deny check.
 
 Returns an ``ExplainResult``: ``allowed`` True/False, the reason, and the rules
 that matched.
 
-We follow the same approach as NetBox at runtime — Django permission +
-ObjectPermission — but additionally record a trace so the user can see which
+We follow the same approach as NetBox at runtime -- Django permission +
+ObjectPermission -- but additionally record a trace so the user can see which
 rule allowed (or failed to allow) the action.
 """
 

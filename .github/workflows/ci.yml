@@ -30,7 +30,7 @@ jobs:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
           # No uv.lock in this repo (optional for projects without runtime deps).
-          # Cache key is pyproject.toml — invalidated only when dev-deps change.
+          # Cache key is pyproject.toml -- invalidated only when dev-deps change.
           cache-dependency-glob: "pyproject.toml"
 
       - name: Install ruff
@@ -43,7 +43,7 @@ jobs:
         run: uv tool run ruff format --check netbox_permissions_plugin
 
   pure-tests:
-    # Tests that do not require a running NetBox. Fast feedback —
+    # Tests that do not require a running NetBox. Fast feedback --
     # seconds rather than minutes for the full matrix.
     name: Pure Python tests
     runs-on: ubuntu-22.04
@@ -56,7 +56,7 @@ jobs:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
           # No uv.lock in this repo (optional for projects without runtime deps).
-          # Cache key is pyproject.toml — invalidated only when dev-deps change.
+          # Cache key is pyproject.toml -- invalidated only when dev-deps change.
           cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python
@@ -77,7 +77,7 @@ jobs:
       matrix:
         python: ["3.12", "3.13"]
         # v4.4.0 is the floor. Extend to ["v4.4.0", "v4.5.0", "develop"] once
-        # newer 4.x releases ship — jobs are independent so it's safe.
+        # newer 4.x releases ship -- jobs are independent so it's safe.
         netbox-ref: ["v4.4.0"]
     services:
       postgres:
@@ -116,7 +116,7 @@ jobs:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
           # No uv.lock in this repo (optional for projects without runtime deps).
-          # Cache key is pyproject.toml — invalidated only when dev-deps change.
+          # Cache key is pyproject.toml -- invalidated only when dev-deps change.
           cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python ${{ matrix.python }}

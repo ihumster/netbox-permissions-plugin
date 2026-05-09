@@ -2,9 +2,9 @@
 
 NetBox stores constraints in a JSONField:
 
-- ``None`` or ``{}`` — no restrictions (always True);
-- ``dict`` — all keys ANDed together;
-- ``list[dict]`` — alternatives ORed together; an empty list means "never".
+- ``None`` or ``{}`` -- no restrictions (always True);
+- ``dict`` -- all keys ANDed together;
+- ``list[dict]`` -- alternatives ORed together; an empty list means "never".
 
 Each dict key is a Django ORM lookup (``field__sub__lookup``); the value is
 passed to ``Q(...)`` as is.
@@ -18,7 +18,7 @@ from django.db.models import Q
 
 
 class NeverMatch(Exception):
-    """Marker: constraints == [] — the filter must reject everything."""
+    """Marker: constraints == [] -- the filter must reject everything."""
 
 
 def constraints_to_q(constraints: dict[str, Any] | list[dict[str, Any]] | None) -> Q:
@@ -39,9 +39,9 @@ def constraints_to_q(constraints: dict[str, Any] | list[dict[str, Any]] | None) 
         q = Q()
         for chunk in constraints:
             if not isinstance(chunk, dict):
-                # Structurally invalid — skip; do not make the rule overly permissive.
+                # Structurally invalid -- skip; do not make the rule overly permissive.
                 continue
             q |= Q(**chunk) if chunk else Q()
         return q
-    # Unknown type — treat as "no restrictions", but this is anomalous data.
+    # Unknown type -- treat as "no restrictions", but this is anomalous data.
     return Q()

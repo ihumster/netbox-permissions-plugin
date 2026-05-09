@@ -88,5 +88,24 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "netbox_permissions_plugin/tests/*" = ["F401", "F811"]  # pytest fixtures
 
+[tool.ruff.lint.isort]
+# Treat our package as first-party so it goes into its own import group.
+known-first-party = ["netbox_permissions_plugin"]
+# NetBox / Django ship as third-party in the target environment. Listing them
+# explicitly keeps isort from drifting them into the wrong group.
+known-third-party = [
+    "django",
+    "netbox",
+    "utilities",
+    "users",
+    "core",
+    "dcim",
+    "ipam",
+    "extras",
+    "tenancy",
+    "virtualization",
+    "circuits",
+]
+
 [tool.ruff.format]
 quote-style = "double"
