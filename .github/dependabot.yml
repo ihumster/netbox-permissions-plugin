@@ -6,6 +6,11 @@ updates:
       interval: weekly
     commit-message:
       prefix: "ci"
+    # Bundle all GitHub Actions bumps into one PR per week so we don't see
+    # five separate "bump x from a to b" PRs every Monday.
+    groups:
+      gha:
+        patterns: ["*"]
 
   - package-ecosystem: pip
     directory: /
@@ -13,3 +18,9 @@ updates:
       interval: weekly
     commit-message:
       prefix: "deps"
+    # Group dev-dependency bumps (ruff, pytest, factory-boy, ...) together.
+    # If a major bump lands, dependabot opens a separate PR for review.
+    groups:
+      dev:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
