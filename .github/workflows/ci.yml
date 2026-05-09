@@ -64,8 +64,10 @@ jobs:
 
       - name: Run resolver-only tests (no NetBox required)
         # `uv run` auto-creates a venv and installs project + extras as declared.
+        # Django is included because `resolver/_q.py` imports `django.db.models.Q`
+        # at module level; NetBox itself is not needed for this slice.
         run: |
-          uv run --python 3.12 --with pytest --with pytest-mock \
+          uv run --python 3.12 --with pytest --with pytest-mock --with django \
             pytest netbox_permissions_plugin/tests/test_q_builder.py -ra
 
   netbox-tests:

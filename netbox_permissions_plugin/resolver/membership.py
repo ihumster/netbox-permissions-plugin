@@ -22,7 +22,9 @@ from .. import settings as plugin_settings
 from .types import GroupMembership, MembershipSource
 
 if TYPE_CHECKING:  # pragma: no cover
-    from django.contrib.auth.models import User
+    # NetBox 4.x has its own User model in users.models; that's what
+    # get_user_model() resolves to at runtime.
+    from users.models import User
 
 
 class MembershipProvider(Protocol):

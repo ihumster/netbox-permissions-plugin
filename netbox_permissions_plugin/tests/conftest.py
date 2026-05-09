@@ -42,14 +42,16 @@ def inactive_user(User):
 
 @pytest.fixture
 def group_a(db):
-    from django.contrib.auth.models import Group
+    # NetBox 4.x ships a custom Group model in `users.models`; the M2M on its
+    # User points there, not at django.contrib.auth.models.Group.
+    from users.models import Group
 
     return Group.objects.create(name="dc-engineers")
 
 
 @pytest.fixture
 def group_b(db):
-    from django.contrib.auth.models import Group
+    from users.models import Group
 
     return Group.objects.create(name="noc-readonly")
 

@@ -54,8 +54,6 @@ include = [
 [tool.uv]
 # Cache project venv in .venv so CI and local builds align.
 package = true
-# Minimum uv version. Not critical, but guards against old uv behaviors.
-required-version = ">=0.4.0"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "netbox.settings"
