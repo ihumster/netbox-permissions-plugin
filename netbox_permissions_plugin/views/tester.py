@@ -1,4 +1,4 @@
-"""View «Permission tester»: единичная проверка allow/deny с трассой."""
+"""View for "Permission tester": single allow/deny check with a trace."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.views import View
 
 from ..forms import TesterForm
-from ..resolver import explain
+from ..resolver.tester import explain
 
 
 class TesterView(PermissionRequiredMixin, View):

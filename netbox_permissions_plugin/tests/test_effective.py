@@ -1,12 +1,11 @@
-"""Тесты compute_effective."""
+"""Tests for compute_effective."""
 
 from __future__ import annotations
 
 import pytest
 
-from netbox_permissions_plugin.resolver import compute_effective
+from netbox_permissions_plugin.resolver.effective import compute_effective
 from netbox_permissions_plugin.resolver.types import RuleSource
-
 
 pytestmark = pytest.mark.django_db
 

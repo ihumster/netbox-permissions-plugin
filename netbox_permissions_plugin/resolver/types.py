@@ -1,6 +1,6 @@
-"""Типы данных, возвращаемые resolver-ом.
+"""Data types returned by the resolver.
 
-Все DTO — frozen dataclass-ы; views только читают и рендерят.
+All DTOs are frozen dataclasses; views only read and render them.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from typing import Any
 
 
 class MembershipSource(str, Enum):
-    """Откуда у пользователя членство в группе."""
+    """Where a user's group membership comes from."""
 
     LOCAL = "local"
     SAML = "saml"
@@ -25,28 +25,28 @@ class GroupMembership:
     group_id: int
     group_name: str
     source: MembershipSource
-    # Произвольные детали от провайдера: claim path, DN, etc. — для отображения.
+    # Free-form provider details for display: claim path, DN, etc.
     detail: str | None = None
 
 
 class RuleSource(str, Enum):
-    """Каким путём ObjectPermission достался пользователю."""
+    """How an ObjectPermission reaches the user."""
 
     DIRECT = "direct"  # User.object_permissions
-    GROUP = "group"  # через Group.object_permissions
-    SUPERUSER = "superuser"  # синтетический, для is_superuser=True
+    GROUP = "group"  # via Group.object_permissions
+    SUPERUSER = "superuser"  # synthetic, for is_superuser=True
 
 
 @dataclass(frozen=True)
 class ResolvedRule:
-    """Одна строка эффективных прав после резолва.
+    """One row of effective permissions after resolution.
 
-    Каждая ResolvedRule всегда соответствует одному ObjectPermission
-    в комбинации с одним ContentType. Если ObjectPermission связан с
-    несколькими CT, при резолве он распадается на несколько ResolvedRule.
+    A ResolvedRule always corresponds to a single ObjectPermission combined
+    with a single ContentType. If the source ObjectPermission is linked to
+    multiple CTs, it expands into multiple ResolvedRule rows during resolution.
     """
 
-    permission_id: int | None  # None для синтетических superuser-правил
+    permission_id: int | None  # None for synthetic superuser rules
     permission_name: str
     enabled: bool
     actions: tuple[str, ...]
@@ -54,7 +54,7 @@ class ResolvedRule:
     object_type_app_label: str
     object_type_model: str
     source: RuleSource
-    via_group: GroupMembership | None = None  # заполнено для source=GROUP
+    via_group: GroupMembership | None = None  # populated when source=GROUP
 
     @property
     def object_type_label(self) -> str:
@@ -62,23 +62,21 @@ class ResolvedRule:
 
     @property
     def is_unrestricted(self) -> bool:
-        """`None` или `{}` означают «без ограничений»."""
+        """``None`` or ``{}`` mean "no constraints"."""
         c = self.constraints
         if c is None:
             return True
-        if isinstance(c, dict) and len(c) == 0:
-            return True
-        return False
+        return isinstance(c, dict) and len(c) == 0
 
     @property
     def is_never_match(self) -> bool:
-        """Пустой список `[]` означает «никогда не матчится» (идиома NetBox)."""
+        """Empty list ``[]`` means "never matches" (NetBox idiom)."""
         return isinstance(self.constraints, list) and len(self.constraints) == 0
 
 
 @dataclass(frozen=True)
 class EffectivePermissions:
-    """Полный набор эффективных прав одного субъекта (User или Group)."""
+    """Full set of effective permissions for a single subject (User or Group)."""
 
     subject_kind: str  # "user" | "group"
     subject_id: int
@@ -105,7 +103,7 @@ class DenyReason(str, Enum):
 
 @dataclass(frozen=True)
 class ExplainResult:
-    """Результат единичной проверки allow/deny."""
+    """Result of a single allow/deny check."""
 
     allowed: bool
     user_id: int

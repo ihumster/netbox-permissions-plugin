@@ -1,4 +1,4 @@
-"""Тесты MembershipProvider."""
+"""Tests for MembershipProvider."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ from netbox_permissions_plugin.resolver.membership import (
     collect_memberships,
 )
 from netbox_permissions_plugin.resolver.types import MembershipSource
-
 
 pytestmark = pytest.mark.django_db
 

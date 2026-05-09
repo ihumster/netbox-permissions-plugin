@@ -6,15 +6,15 @@ on:
   pull_request:
     branches: [main, develop]
 
-# Отменяем дубликаты на ту же ветку, чтобы не жечь миньки.
+# Cancel duplicate runs on the same ref to save minutes.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  # Параметры uv по всем job-ам.
+  # uv parameters shared across jobs.
   UV_VERSION: "0.4.30"
-  UV_PYTHON_PREFERENCE: only-managed   # uv ставит python сам, без apt
+  UV_PYTHON_PREFERENCE: only-managed   # uv installs its own Python, no apt needed
   FORCE_COLOR: "1"
 
 jobs:
@@ -29,6 +29,9 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # No uv.lock in this repo (optional for projects without runtime deps).
+          # Cache key is pyproject.toml -- invalidated only when dev-deps change.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Install ruff
         run: uv tool install ruff==0.6.9
@@ -40,8 +43,8 @@ jobs:
         run: uv tool run ruff format --check netbox_permissions_plugin
 
   pure-tests:
-    # Тесты, которые не требуют поднятого NetBox. Быстрая обратная связь —
-    # секунды, а не минуты как полный матричный прогон.
+    # Tests that do not require a running NetBox. Fast feedback --
+    # seconds rather than minutes for the full matrix.
     name: Pure Python tests
     runs-on: ubuntu-22.04
     steps:
@@ -52,14 +55,19 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # No uv.lock in this repo (optional for projects without runtime deps).
+          # Cache key is pyproject.toml -- invalidated only when dev-deps change.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python
         run: uv python install 3.12
 
       - name: Run resolver-only tests (no NetBox required)
-        # uv run автоматически создаёт виртуалку и ставит зависимости из pyproject.
+        # `uv run` auto-creates a venv and installs project + extras as declared.
+        # Django is included because `resolver/_q.py` imports `django.db.models.Q`
+        # at module level; NetBox itself is not needed for this slice.
         run: |
-          uv run --python 3.12 --with pytest --with pytest-mock \
+          uv run --python 3.12 --with pytest --with pytest-mock --with django \
             pytest netbox_permissions_plugin/tests/test_q_builder.py -ra
 
   netbox-tests:
@@ -70,8 +78,8 @@ jobs:
       fail-fast: false
       matrix:
         python: ["3.12", "3.13"]
-        # 4.4.0 — первая 4.4 версия. Расширить до ["v4.4.0", "v4.5.0", "develop"]
-        # когда выйдут более свежие, — это безопасно, jobs независимые.
+        # v4.4.0 is the floor. Extend to ["v4.4.0", "v4.5.0", "develop"] once
+        # newer 4.x releases ship -- jobs are independent so it's safe.
         netbox-ref: ["v4.4.0"]
     services:
       postgres:
@@ -109,6 +117,9 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # No uv.lock in this repo (optional for projects without runtime deps).
+          # Cache key is pyproject.toml -- invalidated only when dev-deps change.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python ${{ matrix.python }}
         run: uv python install ${{ matrix.python }}
@@ -119,8 +130,8 @@ jobs:
             https://github.com/netbox-community/netbox.git "$NETBOX_DIR"
 
       - name: Create venv and install deps via uv
-        # Один venv для NetBox + плагина. uv pip install подхватывает путь
-        # активного venv через VIRTUAL_ENV; venv лежит в $NETBOX_DIR/.venv.
+        # Single venv for NetBox + plugin. `uv pip install` picks up the active
+        # venv via VIRTUAL_ENV; venv lives at $NETBOX_DIR/.venv.
         run: |
           uv venv --python ${{ matrix.python }} "$NETBOX_DIR/.venv"
           echo "VIRTUAL_ENV=$NETBOX_DIR/.venv" >> "$GITHUB_ENV"

@@ -1,10 +1,11 @@
-"""explain(user, ct, object_id, action) — единичная проверка allow/deny.
+"""``explain(user, ct, object_id, action)`` -- single allow/deny check.
 
-Возвращает ExplainResult: allowed True/False, причина, какие правила сработали.
+Returns an ``ExplainResult``: ``allowed`` True/False, the reason, and the rules
+that matched.
 
-Используем тот же подход, что и NetBox в рантайме: смотрим Django-permission
-+ ObjectPermission, но дополнительно сохраняем трассу, чтобы пользователь
-видел, какое именно правило допустило/не допустило действие.
+We follow the same approach as NetBox at runtime -- Django permission +
+ObjectPermission -- but additionally record a trace so the user can see which
+rule allowed (or failed to allow) the action.
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ def explain(
     object_id: Any,
     action: str,
 ) -> ExplainResult:
-    """Объяснить, может ли user выполнить action над объектом."""
+    """Explain whether ``user`` may perform ``action`` on the given object."""
     User = get_user_model()
     if not isinstance(user, User):
         raise TypeError(f"Expected user instance, got {type(user)!r}")
@@ -41,7 +42,7 @@ def explain(
             object_id=object_id,
             action=action,
             deny_reason=DenyReason.INACTIVE,
-            deny_detail="Пользователь деактивирован.",
+            deny_detail="User is deactivated.",
         )
 
     if user.is_superuser:
@@ -56,15 +57,20 @@ def explain(
             matched_rules=eff.rules,
         )
 
-    # Все правила пользователя на этот CT с этим action.
+    # All of the user's rules for this CT and this action.
     eff = compute_effective(user)
-    relevant = tuple(
-        r for r in eff.rules
-        if r.object_type_app_label == content_type.app_label
-        and r.object_type_model == content_type.model
-        and action in r.actions
-        and r.enabled
-    )
+    relevant_list: list[ResolvedRule] = []
+    for r in eff.rules:
+        if r.object_type_app_label != content_type.app_label:
+            continue
+        if r.object_type_model != content_type.model:
+            continue
+        if action not in r.actions:
+            continue
+        if not r.enabled:
+            continue
+        relevant_list.append(r)
+    relevant = tuple(relevant_list)
     if not relevant:
         return ExplainResult(
             allowed=False,
@@ -74,10 +80,7 @@ def explain(
             object_id=object_id,
             action=action,
             deny_reason=DenyReason.NO_OBJECT_PERM,
-            deny_detail=(
-                f"У пользователя нет ни одного ObjectPermission на "
-                f"{label_ct} с action={action!r}."
-            ),
+            deny_detail=(f"User has no ObjectPermission on {label_ct} with action={action!r}."),
         )
 
     model = content_type.model_class()
@@ -90,7 +93,7 @@ def explain(
             object_id=object_id,
             action=action,
             deny_reason=DenyReason.UNKNOWN_ACTION,
-            deny_detail=f"ContentType {label_ct} не привязан к модели.",
+            deny_detail=f"ContentType {label_ct} is not bound to a model.",
         )
 
     matched: list[ResolvedRule] = []
@@ -122,8 +125,8 @@ def explain(
         action=action,
         deny_reason=DenyReason.CONSTRAINTS_NOT_MATCHED,
         deny_detail=(
-            f"Найдено {len(relevant)} правил с нужным action, но ни одно "
-            f"constraints не совпало с объектом id={object_id}."
+            f"Found {len(relevant)} rule(s) with the requested action, but "
+            f"no constraint matched object id={object_id}."
         ),
-        matched_rules=relevant,  # показываем кандидатов как «не сработали»
+        matched_rules=relevant,  # show the candidates as "did not fire"
     )

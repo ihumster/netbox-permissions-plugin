@@ -21,11 +21,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-# Runtime-зависимостей у плагина нет: Django и NetBox уже стоят в целевой среде.
+# No runtime dependencies: Django and NetBox are provided by the target environment.
 dependencies = []
 
 [project.optional-dependencies]
-# Зависимости для тестов и линтинга. Через uv ставятся как `uv sync --extra dev`.
+# Test and lint dependencies. Installed via `uv sync --extra dev` or `uv pip install -e ".[dev]"`.
 dev = [
     "pytest>=8",
     "pytest-django>=4.8",
@@ -38,7 +38,7 @@ dev = [
 Homepage = "https://example.invalid/netbox-permissions-plugin"
 Issues = "https://example.invalid/netbox-permissions-plugin/issues"
 
-# Hatchling: точно описать, что попадает в wheel.
+# Hatchling: explicitly declare what goes into the wheel.
 [tool.hatch.build.targets.wheel]
 packages = ["netbox_permissions_plugin"]
 
@@ -50,12 +50,10 @@ include = [
     "/pyproject.toml",
 ]
 
-# uv-специфичные настройки. Не обязательны, но фиксируют поведение явно.
+# uv-specific settings. Not strictly required but pin behavior explicitly.
 [tool.uv]
-# Кешировать виртуалку проекта в .venv, чтобы CI и локальная сборка совпадали.
+# Cache project venv in .venv so CI and local builds align.
 package = true
-# Минимальная версия uv — не критично, но защитит от старых поведений.
-required-version = ">=0.4.0"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "netbox.settings"
@@ -81,12 +79,31 @@ select = [
     "RUF", # ruff-specific
 ]
 ignore = [
-    "E501",  # line length (форматтер сам разберётся)
-    "B008",  # default arg call — частый паттерн в DRF/Django
+    "E501",  # line length (formatter handles wrapping)
+    "B008",  # default arg call — common pattern in DRF/Django
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"netbox_permissions_plugin/tests/*" = ["F401", "F811"]  # фикстуры pytest
+"netbox_permissions_plugin/tests/*" = ["F401", "F811"]  # pytest fixtures
+
+[tool.ruff.lint.isort]
+# Treat our package as first-party so it goes into its own import group.
+known-first-party = ["netbox_permissions_plugin"]
+# NetBox / Django ship as third-party in the target environment. Listing them
+# explicitly keeps isort from drifting them into the wrong group.
+known-third-party = [
+    "django",
+    "netbox",
+    "utilities",
+    "users",
+    "core",
+    "dcim",
+    "ipam",
+    "extras",
+    "tenancy",
+    "virtualization",
+    "circuits",
+]
 
 [tool.ruff.format]
 quote-style = "double"

@@ -1,4 +1,4 @@
-"""View «Кто имеет доступ к объекту X»."""
+"""View for "Who has access to object X"."""
 
 from __future__ import annotations
 

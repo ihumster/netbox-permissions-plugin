@@ -6,8 +6,8 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write       # для создания GitHub Release
-  id-token: write       # для PyPI Trusted Publishing (OIDC)
+  contents: write       # required to create a GitHub Release
+  id-token: write       # required for PyPI Trusted Publishing (OIDC)
 
 env:
   UV_VERSION: "0.4.30"
@@ -25,6 +25,8 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
+          # No uv.lock in this repo -- cache key is pyproject.toml.
+          cache-dependency-glob: "pyproject.toml"
 
       - name: Set up Python
         run: uv python install 3.12
@@ -32,7 +34,7 @@ jobs:
       - name: Verify tag matches pyproject version
         run: |
           tag="${GITHUB_REF#refs/tags/v}"
-          # tomllib — stdlib с 3.11, гарантированно есть на 3.12.
+          # tomllib has been stdlib since 3.11; guaranteed on 3.12.
           pkg=$(uv run --python 3.12 --no-project python -c \
             "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
           if [ "$tag" != "$pkg" ]; then
@@ -42,11 +44,11 @@ jobs:
           echo "Tag and pyproject version match: $tag"
 
       - name: Build distributions
-        # uv build делает то же, что python -m build, но без pip + быстрее.
+        # `uv build` produces the same artifacts as `python -m build` but faster.
         run: uv build
 
       - name: Check distributions with twine
-        # twine check валидирует README/metadata; uv пока не имеет встроенного эквивалента.
+        # `twine check` validates README/metadata; uv has no built-in equivalent yet.
         run: |
           uv tool install twine
           uv tool run twine check dist/*
@@ -75,9 +77,9 @@ jobs:
           fail_on_unmatched_files: true
 
   pypi-publish:
-    # Опциональный job. Включается, если в репозитории установлен
-    # vars.PUBLISH_TO_PYPI=true и на PyPI настроен Trusted Publisher
-    # (в settings проекта на pypi.org -> Publishing -> GitHub).
+    # Optional job. Runs only when the repository has vars.PUBLISH_TO_PYPI=true
+    # and the PyPI project has a Trusted Publisher configured for this repo
+    # (pypi.org project settings -> Publishing -> Add a new publisher).
     name: Publish to PyPI (uv publish)
     needs: [build]
     runs-on: ubuntu-22.04
@@ -97,6 +99,6 @@ jobs:
           version: ${{ env.UV_VERSION }}
 
       - name: Publish via uv (Trusted Publishing OIDC)
-        # uv publish с PyPI Trusted Publisher автоматически подхватывает
-        # OIDC-токен GitHub из id-token: write permission.
+        # With PyPI Trusted Publishing, `uv publish` picks up the GitHub OIDC
+        # token automatically thanks to the id-token: write permission above.
         run: uv publish dist/*

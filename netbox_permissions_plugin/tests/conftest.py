@@ -1,8 +1,8 @@
-"""Общие фикстуры для тестов resolver-а.
+"""Shared fixtures for resolver tests.
 
-Тесты идут поверх живого NetBox-окружения (через DJANGO_SETTINGS_MODULE=netbox.settings),
-поэтому реально создают User, Group, ObjectPermission, dcim.Site и т.п.
-Запускать через `pytest` из директории, где доступен NetBox.
+These tests run against a live NetBox environment (DJANGO_SETTINGS_MODULE=netbox.settings),
+so they really create User, Group, ObjectPermission, dcim.Site, etc.
+Run via ``pytest`` from a directory where NetBox is importable.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import pytest
 
 @pytest.fixture
 def db_setup(db):
-    """Маркер «нужна БД». Просто прокидывает pytest-django db fixture."""
+    """Marker for "needs DB". Just re-exports the pytest-django ``db`` fixture."""
     return db
 
 
@@ -42,14 +42,16 @@ def inactive_user(User):
 
 @pytest.fixture
 def group_a(db):
-    from django.contrib.auth.models import Group
+    # NetBox 4.x ships a custom Group model in `users.models`; the M2M on its
+    # User points there, not at django.contrib.auth.models.Group.
+    from users.models import Group
 
     return Group.objects.create(name="dc-engineers")
 
 
 @pytest.fixture
 def group_b(db):
-    from django.contrib.auth.models import Group
+    from users.models import Group
 
     return Group.objects.create(name="noc-readonly")
 
@@ -65,7 +67,9 @@ def site_ct(db):
 def make_objectperm(db, site_ct):
     from users.models import ObjectPermission
 
-    def _make(name, *, actions, constraints=None, users=(), groups=(), enabled=True, content_types=()):
+    def _make(
+        name, *, actions, constraints=None, users=(), groups=(), enabled=True, content_types=()
+    ):
         cts = list(content_types) or [site_ct]
         perm = ObjectPermission.objects.create(
             name=name,

@@ -1,12 +1,11 @@
-"""Тесты explain (Permission tester)."""
+"""Tests for explain (Permission tester)."""
 
 from __future__ import annotations
 
 import pytest
 
-from netbox_permissions_plugin.resolver import explain
+from netbox_permissions_plugin.resolver.tester import explain
 from netbox_permissions_plugin.resolver.types import DenyReason
-
 
 pytestmark = pytest.mark.django_db
 
@@ -53,18 +52,18 @@ def test_constraints_dont_match_denies_with_reason(
     res = explain(regular_user, site_ct, site_dc2.pk, "change")
     assert res.allowed is False
     assert res.deny_reason == DenyReason.CONSTRAINTS_NOT_MATCHED
-    # Кандидаты возвращаются в matched_rules для отладки.
+    # Candidates are returned in matched_rules for debugging.
     assert any(r.permission_name == "dc1-only" for r in res.matched_rules)
 
 
 def test_custom_action_run(regular_user, make_objectperm, db):
-    """Кастомный action `run` для запуска скриптов работает так же, как стандартные."""
-    from django.contrib.contenttypes.models import ContentType
-    # Используем dcim.site как нейтральный объект для проверки логики
-    # (проверяем только сериализацию action в actions JSONField).
-    site_ct = ContentType.objects.get(app_label="dcim", model="site")
+    """Custom action ``run`` (NetBox script execution) flows the same way as standard ones."""
     from dcim.models import Site
+    from django.contrib.contenttypes.models import ContentType
 
+    # Use dcim.site as a neutral target -- we just verify the action string is
+    # serialized into the actions JSONField and matched as expected.
+    site_ct = ContentType.objects.get(app_label="dcim", model="site")
     site = Site.objects.create(name="X", slug="x")
     make_objectperm("can-run", actions=["run"], users=[regular_user])
     res = explain(regular_user, site_ct, site.pk, "run")

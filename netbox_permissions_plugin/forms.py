@@ -1,7 +1,7 @@
-"""Формы для трёх аудит-страниц.
+"""Forms for the three audit pages.
 
-Используем нативные NetBox-поля (DynamicModelChoiceField), чтобы получить
-красивый поиск с autocomplete для пользователей и ContentType.
+We rely on native NetBox fields (``DynamicModelChoiceField``) to get nice
+search-with-autocomplete for users and ContentType.
 """
 
 from __future__ import annotations
@@ -9,7 +9,6 @@ from __future__ import annotations
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-
 from utilities.forms.fields import DynamicModelChoiceField
 
 User = get_user_model()

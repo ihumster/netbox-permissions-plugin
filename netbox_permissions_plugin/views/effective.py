@@ -1,18 +1,17 @@
-"""View «Effective permissions for user»."""
+"""View for "Effective permissions for user"."""
 
 from __future__ import annotations
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import render
 from django.views import View
 
 from ..forms import EffectiveQueryForm
-from ..resolver import compute_effective
+from ..resolver.effective import compute_effective
 
 
 class EffectivePermissionsView(PermissionRequiredMixin, View):
-    """Поиск пользователя → агрегированный список его прав."""
+    """User picker -> aggregated list of their permissions."""
 
     permission_required = "users.view_objectpermission"
     template_name = "netbox_permissions_plugin/effective.html"
