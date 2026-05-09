@@ -58,12 +58,12 @@ def test_constraints_dont_match_denies_with_reason(
 
 def test_custom_action_run(regular_user, make_objectperm, db):
     """Custom action ``run`` (NetBox script execution) flows the same way as standard ones."""
+    from dcim.models import Site
     from django.contrib.contenttypes.models import ContentType
+
     # Use dcim.site as a neutral target -- we just verify the action string is
     # serialized into the actions JSONField and matched as expected.
     site_ct = ContentType.objects.get(app_label="dcim", model="site")
-    from dcim.models import Site
-
     site = Site.objects.create(name="X", slug="x")
     make_objectperm("can-run", actions=["run"], users=[regular_user])
     res = explain(regular_user, site_ct, site.pk, "run")

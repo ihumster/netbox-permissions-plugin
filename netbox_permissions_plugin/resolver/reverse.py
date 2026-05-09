@@ -114,7 +114,5 @@ def _superuser_matches(content_type: ContentType, object_id: Any) -> list[Matchi
         object_type_model=content_type.model,
         source=RuleSource.SUPERUSER,
     )
-    grantees = tuple(
-        GranteePrincipal(kind="user", id=u.pk, label=u.username) for u in superusers
-    )
+    grantees = tuple(GranteePrincipal(kind="user", id=u.pk, label=u.username) for u in superusers)
     return [MatchingRule(rule=rule, grantees=grantees)]

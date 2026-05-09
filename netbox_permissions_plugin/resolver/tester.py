@@ -60,7 +60,8 @@ def explain(
     # All of the user's rules for this CT and this action.
     eff = compute_effective(user)
     relevant = tuple(
-        r for r in eff.rules
+        r
+        for r in eff.rules
         if r.object_type_app_label == content_type.app_label
         and r.object_type_model == content_type.model
         and action in r.actions

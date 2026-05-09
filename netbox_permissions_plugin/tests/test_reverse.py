@@ -9,17 +9,13 @@ from netbox_permissions_plugin.resolver.reverse import reverse_lookup
 pytestmark = pytest.mark.django_db
 
 
-def test_unrestricted_perm_matches_any_object(
-    regular_user, make_objectperm, site_dc1, site_ct
-):
+def test_unrestricted_perm_matches_any_object(regular_user, make_objectperm, site_dc1, site_ct):
     make_objectperm("all-sites-read", actions=["view"], users=[regular_user])
     rows = reverse_lookup(site_ct, site_dc1.pk)
     assert any(r.rule.permission_name == "all-sites-read" for r in rows)
 
 
-def test_constraints_filter_by_slug(
-    regular_user, make_objectperm, site_dc1, site_dc2, site_ct
-):
+def test_constraints_filter_by_slug(regular_user, make_objectperm, site_dc1, site_dc2, site_ct):
     make_objectperm(
         "dc1-only",
         actions=["view"],
@@ -32,9 +28,7 @@ def test_constraints_filter_by_slug(
     assert all(r.rule.permission_name != "dc1-only" for r in rows_dc2)
 
 
-def test_or_constraints_match_either(
-    regular_user, make_objectperm, site_dc1, site_dc2, site_ct
-):
+def test_or_constraints_match_either(regular_user, make_objectperm, site_dc1, site_dc2, site_ct):
     make_objectperm(
         "dc1-or-dc2",
         actions=["view"],
@@ -46,9 +40,7 @@ def test_or_constraints_match_either(
         assert any(r.rule.permission_name == "dc1-or-dc2" for r in rows)
 
 
-def test_never_match_constraints_are_skipped(
-    regular_user, make_objectperm, site_dc1, site_ct
-):
+def test_never_match_constraints_are_skipped(regular_user, make_objectperm, site_dc1, site_ct):
     make_objectperm(
         "blocked",
         actions=["view"],

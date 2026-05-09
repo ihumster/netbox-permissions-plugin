@@ -65,7 +65,9 @@ def site_ct(db):
 def make_objectperm(db, site_ct):
     from users.models import ObjectPermission
 
-    def _make(name, *, actions, constraints=None, users=(), groups=(), enabled=True, content_types=()):
+    def _make(
+        name, *, actions, constraints=None, users=(), groups=(), enabled=True, content_types=()
+    ):
         cts = list(content_types) or [site_ct]
         perm = ObjectPermission.objects.create(
             name=name,
