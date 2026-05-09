@@ -6,11 +6,11 @@ All DTOs are frozen dataclasses; views only read and render them.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class MembershipSource(str, Enum):
+class MembershipSource(StrEnum):
     """Where a user's group membership comes from."""
 
     LOCAL = "local"
@@ -29,7 +29,7 @@ class GroupMembership:
     detail: str | None = None
 
 
-class RuleSource(str, Enum):
+class RuleSource(StrEnum):
     """How an ObjectPermission reaches the user."""
 
     DIRECT = "direct"  # User.object_permissions
@@ -93,7 +93,7 @@ class EffectivePermissions:
         return out
 
 
-class DenyReason(str, Enum):
+class DenyReason(StrEnum):
     INACTIVE = "user_inactive"
     NO_DJANGO_PERM = "no_django_permission"
     NO_OBJECT_PERM = "no_object_permission"
