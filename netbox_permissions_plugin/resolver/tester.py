@@ -59,14 +59,18 @@ def explain(
 
     # All of the user's rules for this CT and this action.
     eff = compute_effective(user)
-    relevant = tuple(
-        r
-        for r in eff.rules
-        if r.object_type_app_label == content_type.app_label
-        and r.object_type_model == content_type.model
-        and action in r.actions
-        and r.enabled
-    )
+    relevant_list: list[ResolvedRule] = []
+    for r in eff.rules:
+        if r.object_type_app_label != content_type.app_label:
+            continue
+        if r.object_type_model != content_type.model:
+            continue
+        if action not in r.actions:
+            continue
+        if not r.enabled:
+            continue
+        relevant_list.append(r)
+    relevant = tuple(relevant_list)
     if not relevant:
         return ExplainResult(
             allowed=False,
@@ -76,10 +80,7 @@ def explain(
             object_id=object_id,
             action=action,
             deny_reason=DenyReason.NO_OBJECT_PERM,
-            deny_detail=(
-                f"User has no ObjectPermission on {label_ct} "
-                f"with action={action!r}."
-            ),
+            deny_detail=(f"User has no ObjectPermission on {label_ct} with action={action!r}."),
         )
 
     model = content_type.model_class()
