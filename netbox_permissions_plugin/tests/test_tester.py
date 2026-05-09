@@ -7,7 +7,6 @@ import pytest
 from netbox_permissions_plugin.resolver import explain
 from netbox_permissions_plugin.resolver.types import DenyReason
 
-
 pytestmark = pytest.mark.django_db
 
 

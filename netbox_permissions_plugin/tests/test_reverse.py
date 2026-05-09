@@ -6,7 +6,6 @@ import pytest
 
 from netbox_permissions_plugin.resolver.reverse import reverse_lookup
 
-
 pytestmark = pytest.mark.django_db
 
 

@@ -7,7 +7,6 @@ import pytest
 from netbox_permissions_plugin.resolver import compute_effective
 from netbox_permissions_plugin.resolver.types import RuleSource
 
-
 pytestmark = pytest.mark.django_db
 
 

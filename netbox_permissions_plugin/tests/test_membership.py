@@ -10,7 +10,6 @@ from netbox_permissions_plugin.resolver.membership import (
 )
 from netbox_permissions_plugin.resolver.types import MembershipSource
 
-
 pytestmark = pytest.mark.django_db
 
 
