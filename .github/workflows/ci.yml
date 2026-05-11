@@ -189,3 +189,23 @@ jobs:
           pytest "$GITHUB_WORKSPACE/netbox_permissions_plugin/tests/" \
             -ra --tb=short \
             --rootdir="$GITHUB_WORKSPACE"
+
+  ci-summary:
+    # Single stable check name to require in branch protection. Branch
+    # protection rules cannot pin to matrix-expanded check names (the names
+    # change whenever the matrix changes -- python or netbox-ref bumps -- and
+    # any old required name becomes a permanently missing expectation).
+    # This job depends on every CI job and fails if any of them did not
+    # succeed. In the ruleset, require ONLY ``CI summary``.
+    name: CI summary
+    needs: [lint, pure-tests, netbox-tests]
+    runs-on: ubuntu-22.04
+    if: always()
+    steps:
+      - name: Fail if any required job did not succeed
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "::error::One of the required jobs did not succeed"
+            exit 1
+          fi
+          echo "All required jobs succeeded"
