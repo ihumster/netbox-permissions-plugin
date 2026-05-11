@@ -32,6 +32,11 @@ class ConstraintSnippet(NetBoxModel):
         blank=True,
     )
     body = models.JSONField(
+        # blank=True so that empty containers (``[]`` -- the NetBox "never
+        # matches" idiom -- and ``{}`` -- the unrestricted form) are not
+        # rejected by Django's form-level blank check. Structural validity
+        # is enforced by ``clean()`` below.
+        blank=True,
         help_text=(
             "NetBox-style constraints: a JSON object for AND semantics, "
             'e.g. {"slug": "dc1"}; or a JSON array of objects for OR semantics, '
