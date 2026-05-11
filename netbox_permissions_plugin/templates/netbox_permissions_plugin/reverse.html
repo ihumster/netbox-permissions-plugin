@@ -1,17 +1,17 @@
 {% extends 'netbox_permissions_plugin/_base.html' %}
 
 {% block page_title %}Reverse lookup{% endblock %}
-{% block page_subtitle %}Кто имеет доступ к указанному объекту и через какое правило.{% endblock %}
+{% block page_subtitle %}Who has access to a specific object, and via which rule.{% endblock %}
 
 {% block result %}
   {% if rows is not None %}
     <div class="card mb-3">
       <div class="card-body">
-        <strong>Объект:</strong>
+        <strong>Object:</strong>
         {% if target_repr %}
           <code>{{ target_repr }}</code>
         {% else %}
-          <em class="text-warning">не найден в БД</em>
+          <em class="text-warning">not found in DB</em>
         {% endif %}
       </div>
     </div>
@@ -20,10 +20,10 @@
       <table class="table table-sm">
         <thead>
           <tr>
-            <th>Правило</th>
+            <th>Rule</th>
             <th>Actions</th>
             <th>Constraints</th>
-            <th>Кому даёт доступ</th>
+            <th>Granted to</th>
           </tr>
         </thead>
         <tbody>
@@ -32,13 +32,13 @@
               <td>
                 {{ row.rule.permission_name }}
                 {% if row.rule.source.value == "superuser" %}
-                  <span class="badge bg-danger">superuser</span>
+                  <span class="badge text-bg-danger">superuser</span>
                 {% endif %}
               </td>
-              <td>{% for a in row.rule.actions %}<span class="badge bg-success me-1">{{ a }}</span>{% endfor %}</td>
+              <td>{% for a in row.rule.actions %}<span class="badge text-bg-success me-1">{{ a }}</span>{% endfor %}</td>
               <td>
                 {% if row.rule.is_unrestricted %}
-                  <em class="text-success">без ограничений</em>
+                  <em class="text-success">unrestricted</em>
                 {% else %}
                   <code>{{ row.rule.constraints }}</code>
                 {% endif %}
@@ -46,9 +46,9 @@
               <td>
                 {% for g in row.grantees %}
                   {% if g.kind == "user" %}
-                    <span class="badge bg-primary">u: {{ g.label }}</span>
+                    <span class="badge text-bg-primary">u: {{ g.label }}</span>
                   {% else %}
-                    <span class="badge bg-info">g: {{ g.label }}</span>
+                    <span class="badge text-bg-info">g: {{ g.label }}</span>
                   {% endif %}
                 {% endfor %}
               </td>
@@ -57,9 +57,9 @@
         </tbody>
       </table>
     {% else %}
-      <div class="alert alert-warning">Никто не имеет явного доступа.</div>
+      <div class="alert alert-warning">No one has explicit access.</div>
     {% endif %}
   {% else %}
-    <div class="alert alert-info">Заполните форму слева.</div>
+    <div class="alert alert-info">Fill in the form on the left.</div>
   {% endif %}
 {% endblock %}

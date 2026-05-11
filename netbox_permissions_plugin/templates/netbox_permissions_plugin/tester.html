@@ -1,7 +1,7 @@
 {% extends 'netbox_permissions_plugin/_base.html' %}
 
 {% block page_title %}Permission tester{% endblock %}
-{% block page_subtitle %}Симуляция has_perm() с трассой по применённым правилам.{% endblock %}
+{% block page_subtitle %}Simulate has_perm() with a trace of which rules applied.{% endblock %}
 
 {% block result %}
   {% if result %}
@@ -16,12 +16,12 @@
         </h4>
         <p>
           <code>{{ result.user_label }}</code>
-          → <code>{{ result.action }}</code>
+          &rarr; <code>{{ result.action }}</code>
           on <code>{{ result.object_type_label }}#{{ result.object_id }}</code>
         </p>
         {% if not result.allowed %}
           <div class="alert alert-warning mb-0">
-            <strong>Причина:</strong> {{ result.deny_reason.value }}<br>
+            <strong>Reason:</strong> {{ result.deny_reason.value }}<br>
             {{ result.deny_detail }}
           </div>
         {% endif %}
@@ -29,19 +29,19 @@
     </div>
 
     {% if result.matched_rules %}
-      <h5>{% if result.allowed %}Сработавшие правила{% else %}Кандидаты, не прошедшие constraints{% endif %}</h5>
+      <h5>{% if result.allowed %}Rules that matched{% else %}Candidates that did not fire{% endif %}</h5>
       <table class="table table-sm">
         <thead>
-          <tr><th>Правило</th><th>Actions</th><th>Constraints</th></tr>
+          <tr><th>Rule</th><th>Actions</th><th>Constraints</th></tr>
         </thead>
         <tbody>
           {% for r in result.matched_rules %}
             <tr>
               <td>{{ r.permission_name }}</td>
-              <td>{% for a in r.actions %}<span class="badge bg-success me-1">{{ a }}</span>{% endfor %}</td>
+              <td>{% for a in r.actions %}<span class="badge text-bg-success me-1">{{ a }}</span>{% endfor %}</td>
               <td>
                 {% if r.is_unrestricted %}
-                  <em class="text-success">без ограничений</em>
+                  <em class="text-success">unrestricted</em>
                 {% else %}
                   <code>{{ r.constraints }}</code>
                 {% endif %}
@@ -52,6 +52,6 @@
       </table>
     {% endif %}
   {% else %}
-    <div class="alert alert-info">Заполните форму слева.</div>
+    <div class="alert alert-info">Fill in the form on the left.</div>
   {% endif %}
 {% endblock %}

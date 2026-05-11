@@ -24,19 +24,19 @@ Project conventions and tooling. Read this before making changes.
 
 ## Code style rules
 
-### Comments — English only
+### Everything is English
 
-All comments in source code MUST be in English. This applies to:
+All comments AND all user-facing UI text in this project MUST be in English. No multi-language support is planned. This applies to:
 
 - Inline `#` comments in Python.
 - YAML comments in `.github/workflows/*.yml`.
 - TOML comments in `pyproject.toml`.
 - Module-, class-, and function-level docstrings in Python.
 - Comments in HTML templates (`<!-- ... -->`).
+- All template-rendered strings: page headers, form labels, `help_text`, button text, table headers, tooltips, badge labels, error messages.
+- Form field `label=` and `help_text=` in `forms.py`.
 
-Only **user-facing UI text** in templates may stay in Russian (it is the product
-language for the target audience). Code-level comments are an internal concern
-and stay English so future maintainers and OSS contributors can read them.
+If you find Russian text anywhere in templates, forms, or code, translate it.
 
 ### Other
 

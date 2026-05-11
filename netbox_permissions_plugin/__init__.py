@@ -52,4 +52,12 @@ else:
             "preview_sample_size": 25,
         }
 
+        def ready(self):
+            super().ready()
+            # Importing object_tab triggers the @register_model_view decorators
+            # that add a "Permissions" tab to the detail page of each target
+            # model (Device, Site, Rack, Prefix, ...). Must run after NetBox
+            # itself has registered its models.
+            from .views import object_tab  # noqa: F401
+
     config = NetBoxPermissionsPluginConfig
