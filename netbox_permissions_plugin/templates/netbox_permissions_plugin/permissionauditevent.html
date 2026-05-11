@@ -1,0 +1,69 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col col-md-6">
+    <div class="card">
+      <h5 class="card-header">Audit event</h5>
+      <table class="table table-hover attr-table">
+        <tr>
+          <th scope="row">Timestamp</th>
+          <td>{{ object.timestamp|date:"Y-m-d H:i:s" }}</td>
+        </tr>
+        <tr>
+          <th scope="row">User</th>
+          <td>
+            {% if object.user %}
+              {{ object.user.username }}
+            {% else %}
+              <span class="text-muted">&lt;system&gt;</span>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Action</th>
+          <td><span class="badge text-bg-primary">{{ object.action }}</span></td>
+        </tr>
+        <tr>
+          <th scope="row">IP address</th>
+          <td>{{ object.ip_address|placeholder }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="col col-md-6">
+    <div class="card">
+      <h5 class="card-header">Target</h5>
+      <table class="table table-hover attr-table">
+        <tr>
+          <th scope="row">Type</th>
+          <td>
+            {% if object.target_type %}
+              <code>{{ object.target_type.app_label }}.{{ object.target_type.model }}</code>
+            {% else %}
+              <span class="text-muted">none</span>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">ID</th>
+          <td>{{ object.target_id|placeholder }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card mt-3">
+      <h5 class="card-header">Payload</h5>
+      <div class="card-body p-0">
+        {% if object.payload %}
+          <pre class="m-0 p-3"><code>{{ object.payload|pprint }}</code></pre>
+        {% else %}
+          <div class="p-3 text-muted">No payload recorded.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

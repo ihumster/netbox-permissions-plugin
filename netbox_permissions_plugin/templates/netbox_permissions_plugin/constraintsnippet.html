@@ -1,0 +1,55 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col col-md-6">
+    <div class="card">
+      <h5 class="card-header">Constraint snippet</h5>
+      <table class="table table-hover attr-table">
+        <tr>
+          <th scope="row">Name</th>
+          <td>{{ object.name }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Description</th>
+          <td>{{ object.description|placeholder }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Applicable to</th>
+          <td>
+            {% for ct in object.object_types.all %}
+              <span class="badge text-bg-info me-1">{{ ct.app_label }}.{{ ct.model }}</span>
+            {% empty %}
+              <span class="text-muted">any content type</span>
+            {% endfor %}
+          </td>
+        </tr>
+      </table>
+    </div>
+    {% include 'inc/panels/tags.html' %}
+    {% include 'inc/panels/custom_fields.html' %}
+  </div>
+
+  <div class="col col-md-6">
+    <div class="card">
+      <h5 class="card-header">Body</h5>
+      <div class="card-body p-0">
+        <pre class="m-0 p-3"><code>{{ object.body|pprint }}</code></pre>
+      </div>
+    </div>
+    <div class="card mt-3">
+      <h5 class="card-header">How it serializes</h5>
+      <div class="card-body small text-muted">
+        {% if object.body|length == 0 %}
+          <em>Empty list -- this snippet matches nothing (NetBox "never matches" idiom).</em>
+        {% else %}
+          This JSON is inserted verbatim into the
+          <code>ObjectPermission.constraints</code> field. A dict produces AND
+          semantics; a list of dicts produces OR semantics.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
