@@ -60,11 +60,8 @@ def _native_fields(model) -> list[FieldDescriptor]:
         DateTimeField,
         DecimalField,
         FloatField,
-        ForeignKey,
         IntegerField,
         JSONField,
-        ManyToManyField,
-        OneToOneField,
         URLField,
     )
 
@@ -88,10 +85,15 @@ def _native_fields(model) -> list[FieldDescriptor]:
             out.append(_select_descriptor(f))
             continue
 
-        if isinstance(f, ManyToManyField):
+        # Relation fields. Use the many_to_many / many_to_one / one_to_one
+        # flags rather than isinstance(ManyToManyField) so we correctly
+        # classify django-taggit's ``TaggableManager`` (NetBox's
+        # ``NetBoxModel.tags``), which is a Field but not a ManyToManyField
+        # subclass.
+        if getattr(f, "many_to_many", False):
             out.append(_fk_or_m2m_descriptor(f, FieldType.M2M))
             continue
-        if isinstance(f, ForeignKey | OneToOneField):
+        if getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False):
             out.append(_fk_or_m2m_descriptor(f, FieldType.FK))
             continue
         if isinstance(f, BooleanField):
