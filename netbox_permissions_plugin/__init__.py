@@ -11,7 +11,7 @@ Write features (CRUD ObjectPermission, constraint builder) are planned for stage
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # PluginConfig is only available when NetBox is installed. We wrap the import
 # so the package can be loaded for resolver-only tests (no NetBox runtime),
