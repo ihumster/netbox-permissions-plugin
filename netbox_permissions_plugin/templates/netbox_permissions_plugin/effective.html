@@ -1,7 +1,7 @@
 {% extends 'netbox_permissions_plugin/_base.html' %}
 
 {% block page_title %}Effective permissions{% endblock %}
-{% block page_subtitle %}Что реально может пользователь — с учётом групп и constraints.{% endblock %}
+{% block page_subtitle %}What a user can actually do, taking groups and constraints into account.{% endblock %}
 
 {% block result %}
   {% if result %}
@@ -10,35 +10,35 @@
         <h4>{{ result.subject_label }}</h4>
         <div>
           {% if result.is_superuser %}
-            <span class="badge bg-danger">superuser</span>
+            <span class="badge text-bg-danger">superuser</span>
           {% endif %}
           {% if not result.is_active %}
-            <span class="badge bg-secondary">inactive</span>
+            <span class="badge text-bg-secondary">inactive</span>
           {% endif %}
         </div>
         {% if result.memberships %}
-          <p class="mt-2 mb-1"><strong>Группы:</strong></p>
+          <p class="mt-2 mb-1"><strong>Groups:</strong></p>
           <ul class="list-inline">
             {% for m in result.memberships %}
               <li class="list-inline-item">
-                <span class="badge bg-info">{{ m.group_name }}</span>
+                <span class="badge text-bg-info">{{ m.group_name }}</span>
                 <small class="text-muted">{{ m.source.value }}</small>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted">Не состоит ни в одной группе.</p>
+          <p class="text-muted">User is not a member of any group.</p>
         {% endif %}
       </div>
     </div>
 
     {% if result.is_superuser %}
       <div class="alert alert-warning">
-        Superuser обходит permission backend полностью — может всё.
+        Superuser bypasses the permission backend entirely -- can do anything.
       </div>
     {% elif not result.rules %}
       <div class="alert alert-info">
-        Нет ни одного применимого ObjectPermission.
+        No applicable ObjectPermission found.
       </div>
     {% else %}
       {% regroup result.rules by object_type_label as by_ct %}
@@ -48,20 +48,20 @@
           <table class="table table-sm mb-0">
             <thead>
               <tr>
-                <th>Правило</th>
+                <th>Rule</th>
                 <th>Actions</th>
                 <th>Constraints</th>
-                <th>Источник</th>
+                <th>Source</th>
               </tr>
             </thead>
             <tbody>
               {% for r in ct_group.list %}
                 <tr>
                   <td>{{ r.permission_name }}{% if not r.enabled %} <small class="text-muted">(disabled)</small>{% endif %}</td>
-                  <td>{% for a in r.actions %}<span class="badge bg-success me-1">{{ a }}</span>{% endfor %}</td>
+                  <td>{% for a in r.actions %}<span class="badge text-bg-success me-1">{{ a }}</span>{% endfor %}</td>
                   <td>
                     {% if r.is_unrestricted %}
-                      <em class="text-success">без ограничений</em>
+                      <em class="text-success">unrestricted</em>
                     {% elif r.is_never_match %}
                       <em class="text-danger">never matches</em>
                     {% else %}
@@ -70,12 +70,12 @@
                   </td>
                   <td>
                     {% if r.source.value == "direct" %}
-                      <span class="badge bg-primary">direct</span>
+                      <span class="badge text-bg-primary">direct</span>
                     {% elif r.source.value == "group" %}
-                      via <span class="badge bg-info">{{ r.via_group.group_name }}</span>
+                      via <span class="badge text-bg-info">{{ r.via_group.group_name }}</span>
                       <small class="text-muted">{{ r.via_group.source.value }}</small>
                     {% else %}
-                      <span class="badge bg-danger">{{ r.source.value }}</span>
+                      <span class="badge text-bg-danger">{{ r.source.value }}</span>
                     {% endif %}
                   </td>
                 </tr>
@@ -86,6 +86,6 @@
       {% endfor %}
     {% endif %}
   {% else %}
-    <div class="alert alert-info">Выберите пользователя слева.</div>
+    <div class="alert alert-info">Pick a user on the left.</div>
   {% endif %}
 {% endblock %}
