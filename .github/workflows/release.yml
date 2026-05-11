@@ -31,17 +31,25 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Verify tag matches pyproject version
+      - name: Verify tag matches package version
         run: |
           tag="${GITHUB_REF#refs/tags/v}"
-          # tomllib has been stdlib since 3.11; guaranteed on 3.12.
-          pkg=$(uv run --python 3.12 --no-project python -c \
-            "import tomllib, pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          # Version is dynamic in pyproject (read from __init__.py at build).
+          # We re-parse the same source file here -- tomllib would see only
+          # ``dynamic = ["version"]`` and no resolved string.
+          pkg=$(uv run --python 3.12 --no-project python -c "
+          import re, pathlib
+          text = pathlib.Path('netbox_permissions_plugin/__init__.py').read_text()
+          m = re.search(r'^__version__\s*=\s*[\"\\'](.+?)[\"\\']', text, re.MULTILINE)
+          if not m:
+              raise SystemExit('__version__ not found in netbox_permissions_plugin/__init__.py')
+          print(m.group(1))
+          ")
           if [ "$tag" != "$pkg" ]; then
-            echo "::error::Tag v$tag != pyproject.toml version $pkg"
+            echo "::error::Tag v$tag != package __version__ $pkg"
             exit 1
           fi
-          echo "Tag and pyproject version match: $tag"
+          echo "Tag and package version match: $tag"
 
       - name: Build distributions
         # `uv build` produces the same artifacts as `python -m build` but faster.

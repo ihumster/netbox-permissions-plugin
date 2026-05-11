@@ -4,7 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "netbox-permissions-plugin"
-version = "0.1.1"
+# Version is read from netbox_permissions_plugin/__init__.py at build time
+# (see [tool.hatch.version]). Bump it in one place.
+dynamic = ["version"]
 description = "NetBox plugin for auditing effective permissions and (later) building ObjectPermission rules visually."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -41,6 +43,10 @@ Issues = "https://example.invalid/netbox-permissions-plugin/issues"
 # Hatchling: explicitly declare what goes into the wheel.
 [tool.hatch.build.targets.wheel]
 packages = ["netbox_permissions_plugin"]
+
+# Hatchling: single source of truth for the version string.
+[tool.hatch.version]
+path = "netbox_permissions_plugin/__init__.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
